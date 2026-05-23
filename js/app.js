@@ -50,7 +50,7 @@ function createRoomBoundary2D() {
     bounds.style.pointerEvents = 'auto'; 
     canvas2d.appendChild(bounds);
 
-    // 🌟 ここで UI.js のズーム・パン機能を初期化！
+    // UI.js のズーム・パン機能を初期化
     init2DUI();
 
     // 部屋の枠内でのドロップイベント
@@ -62,33 +62,18 @@ function createRoomBoundary2D() {
         const rect = bounds.getBoundingClientRect();
         
         if (dragContext.mode === 'new' && dragContext.data) {
-            // 🌟 ズーム状態を考慮してドロップ座標を逆算
+            // ドラッグ＆ドロップ時は、マウスを離した位置（ズーム考慮）に追加
             const x = (e.clientX - rect.left) / viewState.zoom;
             const y = (e.clientY - rect.top) / viewState.zoom;
             addFurnitureData(dragContext.data, x, y);
         } else if (dragContext.mode === 'move' && dragContext.targetId) {
-            // 🌟 移動時もズーム状態を考慮
+            // 移動時
             const x = (e.clientX - rect.left) / viewState.zoom - dragContext.offsetX;
             const y = (e.clientY - rect.top) / viewState.zoom - dragContext.offsetY;
             updateFurniturePosition(dragContext.targetId, x, y);
         }
         dragContext.mode = null;
         dragContext.targetId = null;
-    });
-
-    // 部屋の枠内をクリックした時のイベント
-    bounds.addEventListener('click', (e) => {
-        if (e.target !== bounds) return; 
-
-        if (dragContext.data) {
-            const rect = bounds.getBoundingClientRect();
-            // 🌟 クリック位置もズームに対応
-            const x = (e.clientX - rect.left) / viewState.zoom;
-            const y = (e.clientY - rect.top) / viewState.zoom;
-            addFurnitureData(dragContext.data, x, y);
-        } else {
-            alert("右のメニューから家具を1回クリックして選択してから、部屋の中をクリックしてね！");
-        }
     });
 }
 
@@ -117,25 +102,32 @@ function updateFurniturePosition(id, x, y) {
     }
 }
 
-// --- サイドバーのイベント設定 ---
+// --- サイドバーの家具ボタンのイベント設定 ---
 const sidebarItems = document.querySelectorAll('.furniture-item');
 sidebarItems.forEach(item => {
-    // ドラッグ開始
+    
+    // 1. ドラッグ開始時の処理（ドラッグ＆ドロップ用）
     item.addEventListener('dragstart', (e) => {
-        setSelectFurniture(e.target);
+        dragContext.mode = 'new';
+        dragContext.data = getFurnitureTemplate(e.target);
     });
-    // 🌟 クリックでも選択できるようにする
+
+    // 2. 🌟 ボタンをクリックした時の処理（クリックで即追加用）
     item.addEventListener('click', (e) => {
-        setSelectFurniture(e.target);
-        // 選択中であることが分かりやすいようにちょっと目立たせる
-        sidebarItems.forEach(i => i.style.border = '2px dashed #4f46e5');
-        e.target.style.border = '2px solid #10b981'; 
+        const template = getFurnitureTemplate(e.target);
+        
+        // 部屋の真ん中の座標を初期位置にする（部屋の幅 / 2, 奥行き / 2）
+        const defaultX = projectData.room.w / 2;
+        const defaultY = projectData.room.d / 2;
+        
+        // 即座に部屋データと画面に追加
+        addFurnitureData(template, defaultX, defaultY);
     });
 });
 
-function setSelectFurniture(targetElement) {
-    dragContext.mode = 'new';
-    dragContext.data = {
+// ボタンのカスタムデータ属性から家具のテンプレートを作る共通関数
+function getFurnitureTemplate(targetElement) {
+    return {
         name: targetElement.innerText,
         type: targetElement.dataset.type,
         color: targetElement.dataset.color,
@@ -156,7 +148,7 @@ function render2DFurniture(item) {
     div.style.top = item.y + 'px';
     div.style.backgroundColor = item.color.replace('0x', '#');
 
-    // 🌟 ドラッグイベントの設定を ui.js の関数に任せる
+    // ドラッグ移動イベント（ui.jsの関数を呼び出し）
     setupFurnitureDragEvents(div, item);
 
     bounds.appendChild(div);
