@@ -47,43 +47,44 @@ function createRoomBoundary2D() {
     bounds.id = 'room-boundary-2d';
     bounds.style.width = projectData.room.w + 'px';
     bounds.style.height = projectData.room.d + 'px';
-    
-    // 🌟 枠線の pointer-events を有効にして、ここでクリックやドロップイベントを受け取る
     bounds.style.pointerEvents = 'auto'; 
     canvas2d.appendChild(bounds);
+
+    // 🌟 ここで UI.js のズーム・パン機能を初期化！
+    init2DUI();
 
     // 部屋の枠内でのドロップイベント
     bounds.addEventListener('dragover', (e) => e.preventDefault());
     bounds.addEventListener('drop', (e) => {
         e.preventDefault();
-        e.stopPropagation(); // キャンバス側のイベント発火を防ぐ
+        e.stopPropagation();
         
         const rect = bounds.getBoundingClientRect();
         
         if (dragContext.mode === 'new' && dragContext.data) {
-            // 部屋の左上からの純粋な座標を計算
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            // 🌟 ズーム状態を考慮してドロップ座標を逆算
+            const x = (e.clientX - rect.left) / viewState.zoom;
+            const y = (e.clientY - rect.top) / viewState.zoom;
             addFurnitureData(dragContext.data, x, y);
         } else if (dragContext.mode === 'move' && dragContext.targetId) {
-            // 移動時も部屋の左上基準で計算
-            const x = e.clientX - rect.left - dragContext.offsetX;
-            const y = e.clientY - rect.top - dragContext.offsetY;
+            // 🌟 移動時もズーム状態を考慮
+            const x = (e.clientX - rect.left) / viewState.zoom - dragContext.offsetX;
+            const y = (e.clientY - rect.top) / viewState.zoom - dragContext.offsetY;
             updateFurniturePosition(dragContext.targetId, x, y);
         }
         dragContext.mode = null;
         dragContext.targetId = null;
     });
 
-    // 🌟 【新規機能】部屋の枠内をクリックした時のイベント
+    // 部屋の枠内をクリックした時のイベント
     bounds.addEventListener('click', (e) => {
-        // 家具自体をクリックした時は無視する（すり抜け防止）
         if (e.target !== bounds) return; 
 
         if (dragContext.data) {
             const rect = bounds.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            // 🌟 クリック位置もズームに対応
+            const x = (e.clientX - rect.left) / viewState.zoom;
+            const y = (e.clientY - rect.top) / viewState.zoom;
             addFurnitureData(dragContext.data, x, y);
         } else {
             alert("右のメニューから家具を1回クリックして選択してから、部屋の中をクリックしてね！");
@@ -151,23 +152,14 @@ function render2DFurniture(item) {
     div.innerText = item.name;
     div.style.width = item.w + 'px';
     div.style.height = item.h + 'px';
-    
-    // 🌟 部屋の枠（bounds）の中に直接入れるので、座標は部屋の左上からの距離だけでOKに！
     div.style.left = item.x + 'px';
     div.style.top = item.y + 'px';
     div.style.backgroundColor = item.color.replace('0x', '#');
-    div.draggable = true;
 
-    div.addEventListener('dragstart', (e) => {
-        e.stopPropagation();
-        dragContext.mode = 'move';
-        dragContext.targetId = item.id;
-        const rect = div.getBoundingClientRect();
-        dragContext.offsetX = e.clientX - rect.left - (rect.width / 2);
-        dragContext.offsetY = e.clientY - rect.top - (rect.height / 2);
-    });
+    // 🌟 ドラッグイベントの設定を ui.js の関数に任せる
+    setupFurnitureDragEvents(div, item);
 
-    bounds.appendChild(div); // キャンバスではなく、部屋の枠線の中に追加する
+    bounds.appendChild(div);
 }
 
 // 3D画面への遷移
