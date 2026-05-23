@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空想部屋シミュレーター</title>
+    <!-- CSSの読み込み -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Three.js と OrbitControls の読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <!-- 1. 初期メニュー画面 -->
+    <div id="screen-menu" class="screen">
+        <div class="modal">
+            <h2>空想部屋シミュレーター</h2>
+            <button id="btn-new-project">新規作成</button>
+        </div>
+    </div>
+
+    <!-- 2. プロジェクト設定画面 -->
+    <div id="screen-project-cfg" class="screen hidden">
+        <div class="modal">
+            <h2>プロジェクト設定</h2>
+            <label for="project-name">部屋の名前</label>
+            <input type="text" id="project-name" value="僕の秘密基地">
+            <button id="btn-create-project">プロジェクトを作成</button>
+        </div>
+    </div>
+
+    <!-- 3. 2D家具配置画面 -->
+    <div id="screen-2d" class="screen hidden">
+        <div id="canvas-2d"></div>
+        <div id="sidebar">
+            <h3 id="room-title">部屋</h3>
+            <hr>
+            <p>家具を部屋にドラッグ：</p>
+            <div class="furniture-item" draggable="true" data-type="cube" data-color="0xff6b6b" data-w="60" data-h="60">ソファ (赤)</div>
+            <div class="furniture-item" draggable="true" data-type="box" data-color="0x4dadf7" data-w="80" data-h="40">テーブル (青)</div>
+            <div class="furniture-item" draggable="true" data-type="cylinder" data-color="0x51cf66" data-w="40" data-h="40">観葉植物 (緑)</div>
+            <button id="btn-go-3d" style="background: #10b981; margin-top: auto;">3Dで確認</button>
+        </div>
+    </div>
+
+    <!-- 4. 3D確認画面 -->
+    <div id="screen-3d" class="screen hidden">
+        <button id="btn-back-to-2d">← 2D配置に戻る</button>
+        <div id="container-3d"></div>
+    </div>
+
+    <!-- 自作JSの読み込み（読み込み順に注意：3Dを先に、メイン処理を後に） -->
+    <script src="js/viewer3d.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
