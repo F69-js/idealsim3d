@@ -1,90 +1,74 @@
 let scene, camera, renderer, controls;
 const container3d = document.getElementById('container-3d');
 
-function init3D(projectData, rect2d) {
+function init3D(projectData) {
     const room = projectData.room;
     const furnitureList = projectData.furnitureList;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a1a); // 部屋の外は暗くする
+    scene.background = new THREE.Color(0x1a1a1a);
 
-    // 🌟 カメラを「部屋の中（少し後ろ寄り、人間の目線の高さ）」に配置
+    // カメラ（目線の高さ150cm、部屋の後ろから中を見る）
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.set(0, 150, room.d / 2 - 30); // 高さ150cm、部屋の後ろ寄りに配置
+    camera.position.set(0, 150, room.d / 2 - 30);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     container3d.appendChild(renderer.domElement);
 
-    // カメラ操作。部屋の中から見渡すので、ターゲットを部屋の中心（高さ120cm付近）にする
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 120, 0);
     controls.enableDamping = true;
 
-    // ライト（部屋全体を照らす）
+    // ライト
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
     dirLight.position.set(0, room.h - 10, 0);
     scene.add(dirLight);
 
-    // --- 🏠 3Dの壁・床・天井の自動配置 ---
-    const wallMat = new THREE.MeshLambertMaterial({ color: 0xf3f4f6, side: THREE.DoubleSide }); // 両面描画
+    // --- 🏠 壁・床・天井（中心は 0, 0, 0） ---
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xf3f4f6, side: THREE.DoubleSide });
     const floorMat = new THREE.MeshLambertMaterial({ color: 0xd1d5db, side: THREE.DoubleSide });
     const ceilingMat = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 
     // 床
-    const floorGeo = new THREE.PlaneGeometry(room.w, room.d);
-    const floor = new THREE.Mesh(floorGeo, floorMat);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(room.w, room.d), floorMat);
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = 0;
     scene.add(floor);
 
     // 天井
-    const ceilingGeo = new THREE.PlaneGeometry(room.w, room.d);
-    const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(room.w, room.d), ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.y = room.h;
     scene.add(ceiling);
 
-    // 奥の壁
-    const backWallGeo = new THREE.PlaneGeometry(room.w, room.h);
-    const backWall = new THREE.Mesh(backWallGeo, wallMat);
+    // 各壁の配置
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(room.w, room.h), wallMat);
     backWall.position.set(0, room.h / 2, -room.d / 2);
     scene.add(backWall);
 
-    // 手前の壁
-    const frontWallGeo = new THREE.PlaneGeometry(room.w, room.h);
-    const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
+    const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(room.w, room.h), wallMat);
     frontWall.position.set(0, room.h / 2, room.d / 2);
     scene.add(frontWall);
 
-    // 左の壁
-    const leftWallGeo = new THREE.PlaneGeometry(room.d, room.h);
-    const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(room.d, room.h), wallMat);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-room.w / 2, room.h / 2, 0);
     scene.add(leftWall);
 
-    // 右の壁
-    const rightWallGeo = new THREE.PlaneGeometry(room.d, room.h);
-    const rightWall = new THREE.Mesh(rightWallGeo, wallMat);
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(room.d, room.h), wallMat);
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.set(room.w / 2, room.h / 2, 0);
     scene.add(rightWall);
 
-    // 簡易的なグリッド線（床用）
+    // 床の上のグリッド
     const grid = new THREE.GridHelper(Math.max(room.w, room.d), 20);
     grid.position.y = 1;
     scene.add(grid);
 
     // --- 🪑 家具の配置 ---
-    const offsetX = rect2d.width / 2;
-    const offsetY = rect2d.height / 2;
-    const roomLeft2D = rect2d.width / 2 - room.w / 2;
-    const roomTop2D = rect2d.height / 2 - room.d / 2;
-
-furnitureList.forEach(item => {
+    furnitureList.forEach(item => {
         let geometry;
         if (item.type === 'cylinder') {
             geometry = new THREE.CylinderGeometry(item.w / 2, item.w / 2, 40, 32);
@@ -95,13 +79,9 @@ furnitureList.forEach(item => {
         const material = new THREE.MeshLambertMaterial({ color: parseInt(item.color) });
         const mesh = new THREE.Mesh(geometry, material);
 
-        // 2Dの部屋の左上からの位置（＝部屋の中でのローカル座標）を計算
-        const localX = item.x - roomLeft2D;
-        const localZ = item.y - roomTop2D;
-
-        // それを3D空間（部屋の中心が0,0）の座標に変換
-        const threeX = localX - room.w / 2;
-        const threeZ = localZ - room.d / 2;
+        // 🌟 2Dの「部屋の左上(0,0)」からの位置を、3Dの「中心(0,0)からの位置」に超シンプルに変換！
+        const threeX = item.x - room.w / 2;
+        const threeZ = item.y - room.d / 2;
 
         mesh.position.set(threeX, 20, threeZ);
         scene.add(mesh);
