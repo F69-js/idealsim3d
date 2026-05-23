@@ -20,15 +20,31 @@
         </div>
     </div>
 
-    <!-- 2. プロジェクト設定画面 -->
-    <div id="screen-project-cfg" class="screen hidden">
-        <div class="modal">
-            <h2>プロジェクト設定</h2>
-            <label for="project-name">部屋の名前</label>
-            <input type="text" id="project-name" value="僕の秘密基地">
-            <button id="btn-create-project">プロジェクトを作成</button>
+<!-- 2. プロジェクト設定画面 -->
+<div id="screen-project-cfg" class="screen hidden">
+    <div class="modal">
+        <h2>プロジェクト設定</h2>
+        <label for="project-name">部屋の名前</label>
+        <input type="text" id="project-name" value="僕の秘密基地">
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <div>
+                <label style="font-size: 12px;">幅 (cm)</label>
+                <input type="number" id="room-width" value="400" style="margin: 5px 0 0 0;">
+            </div>
+            <div>
+                <label style="font-size: 12px;">奥行 (cm)</label>
+                <input type="number" id="room-depth" value="400" style="margin: 5px 0 0 0;">
+            </div>
+            <div>
+                <label style="font-size: 12px;">高さ (cm)</label>
+                <input type="number" id="room-height" value="250" style="margin: 5px 0 0 0;">
+            </div>
         </div>
+        
+        <button id="btn-create-project">プロジェクトを作成</button>
     </div>
+</div>
 
     <!-- 3. 2D家具配置画面 -->
     <div id="screen-2d" class="screen hidden">
