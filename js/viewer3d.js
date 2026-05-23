@@ -82,7 +82,7 @@ function init3D(projectData, rect2d) {
     const offsetX = rect2d.width / 2;
     const offsetY = rect2d.height / 2;
 
-    furnitureList.forEach(item => {
+furnitureList.forEach(item => {
         let geometry;
         if (item.type === 'cylinder') {
             geometry = new THREE.CylinderGeometry(item.w / 2, item.w / 2, 40, 32);
@@ -93,9 +93,13 @@ function init3D(projectData, rect2d) {
         const material = new THREE.MeshLambertMaterial({ color: parseInt(item.color) });
         const mesh = new THREE.Mesh(geometry, material);
 
-        // 2Dキャンバスの中心を基準とした相対座標を計算
-        const threeX = item.x - offsetX;
-        const threeZ = item.y - offsetY;
+        // 2Dの部屋の左上からの位置（＝部屋の中でのローカル座標）を計算
+        const localX = item.x - roomLeft2D;
+        const localZ = item.y - roomTop2D;
+
+        // それを3D空間（部屋の中心が0,0）の座標に変換
+        const threeX = localX - room.w / 2;
+        const threeZ = localZ - room.d / 2;
 
         mesh.position.set(threeX, 20, threeZ);
         scene.add(mesh);
