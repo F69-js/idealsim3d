@@ -81,6 +81,8 @@ function init3D(projectData, rect2d) {
     // --- 🪑 家具の配置 ---
     const offsetX = rect2d.width / 2;
     const offsetY = rect2d.height / 2;
+    const roomLeft2D = rect2d.width / 2 - room.w / 2;
+    const roomTop2D = rect2d.height / 2 - room.d / 2;
 
 furnitureList.forEach(item => {
         let geometry;
