@@ -1,6 +1,7 @@
 // --- 状態管理 ---
 let projectData = {
     name: "",
+    room: { w: 400, d: 400, h: 250 }, // 部屋のサイズ（幅, 奥行, 高さ）
     furnitureList: [] 
 };
 
@@ -26,10 +27,34 @@ document.getElementById('btn-new-project').addEventListener('click', () => {
 
 document.getElementById('btn-create-project').addEventListener('click', () => {
     projectData.name = document.getElementById('project-name').value;
+    
+    // 入力された部屋のサイズを保存
+    projectData.room.w = parseInt(document.getElementById('room-width').value) || 400;
+    projectData.room.d = parseInt(document.getElementById('room-depth').value) || 400;
+    projectData.room.h = parseInt(document.getElementById('room-height').value) || 250;
+    
     document.getElementById('room-title').innerText = projectData.name;
     sCfg.classList.add('hidden');
     s2d.classList.remove('hidden');
+
+    // 2D画面に部屋の境界線（壁）を作成
+    createRoomBoundary2D();
 });
+
+// 2Dの設計図上に壁の境界線を描画する関数
+function createRoomBoundary2D() {
+    // 既存の古い境界線があれば削除
+    const oldBounds = document.getElementById('room-boundary-2d');
+    if (oldBounds) oldBounds.remove();
+
+    const bounds = document.createElement('div');
+    bounds.id = 'room-boundary-2d';
+    // 1cm = 1px として計算
+    bounds.style.width = projectData.room.w + 'px';
+    bounds.style.height = projectData.room.d + 'px';
+    
+    canvas2d.appendChild(bounds);
+}
 
 // --- ドラッグ＆ドロップ ---
 const sidebarItems = document.querySelectorAll('.furniture-item');
@@ -115,5 +140,6 @@ function render2DFurniture(item) {
 document.getElementById('btn-go-3d').addEventListener('click', () => {
     s2d.classList.add('hidden');
     s3d.classList.remove('hidden');
-    init3D(projectData.furnitureList, canvas2d.getBoundingClientRect());
+    // 部屋全体のデータを3D側に渡す
+    init3D(projectData, canvas2d.getBoundingClientRect());
 });
